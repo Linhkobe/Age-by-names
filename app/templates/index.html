@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Age Predictor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Predict Age by First Name</h1>
+
+    <!-- The form is kept for accessibility, but JS intercepts its submit -->
+    <form id="predict-form" autocomplete="off">
+      <input
+        type="text"
+        id="name"
+        placeholder="Enter a first name"
+        required
+      />
+      <button type="submit" id="predictBtn">Predict</button>
+    </form>
+
+    <div id="result" aria-live="polite" style="margin-top: 16px;"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("predict-form");
+    const nameInput = document.getElementById("name");
+    const resultDiv = document.getElementById("result");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault(); // stop the browser from doing a GET + reload
+      await doPredict();
+    });
+
+    async function doPredict() {
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      // Optional: show a tiny loading state
+      resultDiv.textContent = "Predicting…";
+
+      try {
+        const res = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name })
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          resultDiv.textContent = `Error: ${res.status} ${msg}`;
+          return;
+        }
+
+        const data = await res.json();
+
+        // Be flexible about the response keys
+        const age =
+          data.age ??
+          data.predicted_age ??
+          (data.result && data.result.age);
+
+        if (age === undefined || age === null) {
+          resultDiv.textContent = "No age returned from the server.";
+          return;
+        }
+
+        resultDiv.innerHTML = `
+          <div><strong>Name:</strong> ${escapeHtml(name)}</div>
+          <div><strong>Predicted age:</strong> ${age}</div>
+        `;
+      } catch (err) {
+        resultDiv.textContent = "Network or server error.";
+        console.error(err);
+      }
+    }
+
+    // Basic HTML escape to avoid inserting raw text
+    function escapeHtml(str) {
+      return str
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>

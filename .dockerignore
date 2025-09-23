@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+notebooks/
+.git
+
+.age_by_names/

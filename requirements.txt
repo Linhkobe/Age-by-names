@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+torch==2.*
+joblib
+unidecode
+pydantic>=2
+numpy<2.0
+scikit-learn==1.6.1
+category_encoders
