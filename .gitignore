@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 *.ipynb
 .DS_Store
+
+.age_by_names_env/
