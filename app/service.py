@@ -45,15 +45,14 @@ class TorchRegression(nn.Module):
 # This is crucial for loading the saved PyTorch model
 # -------------------------
 import sys
+
+# Make TorchRegression available in __main__ namespace for pickle deserialization
+sys.modules['__main__'].TorchRegression = TorchRegression
+
+# Also make it available in current module
 _current_module = sys.modules[__name__]
 setattr(_current_module, "TorchRegression", TorchRegression)
 
-# For compatibility with older torch versions that expect __main__
-try:
-    import __main__
-    setattr(__main__, "TorchRegression", TorchRegression)
-except Exception as e:
-    print(f"[WARN] Could not alias TorchRegression into __main__: {e}")
 
 # For newer torch versions, add to safe globals
 try:
@@ -80,8 +79,8 @@ class AgeService:
     def _load_model_and_artifacts(self):
         """Load all required model files and artifacts"""
         try:
-            # Load PyTorch model
-            self.model_torch = torch.load(TORCH_MODEL_FILE, map_location='cpu')
+            # Load PyTorch model with weights_only=False to handle custom classes
+            self.model_torch = torch.load(TORCH_MODEL_FILE, map_location='cpu', weights_only=False)
             self.model_torch.eval()
             
             # Load encoders and scalers
